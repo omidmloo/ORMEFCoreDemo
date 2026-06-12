@@ -1,0 +1,221 @@
+@startuml
+title SampleAPI Library Domain Class Diagram
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+hide empty methods
+
+package "SampleAPI.Entities" {
+  abstract class LibraryUser {
+    +Guid Id
+    +string FirstName
+    +string LastName
+    +string Email
+    +string Phone
+    +DateTime CreatedAtUtc
+  }
+
+  class Customer {
+    +string MembershipNumber
+    +CustomerStatus Status
+    +DateOnly JoinedOn
+    +Address Address
+  }
+
+  class Staff {
+    +string EmployeeNumber
+    +DateOnly HiredOn
+  }
+
+  class Address <<owned value object>> {
+    +string Street
+    +string City
+    +string State
+    +string PostalCode
+    +string Country
+  }
+
+  class Publisher {
+    +Guid Id
+    +string Name
+    +string? Website
+  }
+
+  class Author {
+    +Guid Id
+    +string FirstName
+    +string LastName
+    +DateOnly? BirthDate
+    +string? Biography
+  }
+
+  class Category {
+    +Guid Id
+    +string Name
+    +string? Description
+  }
+
+  class Book {
+    +Guid Id
+    +string Isbn
+    +string Title
+    +string? Description
+    +int PublicationYear
+    +int Edition
+    +int Pages
+    +decimal ReplacementCost
+    +bool IsDeleted
+    +DateTime CreatedAtUtc
+    +DateTime? UpdatedAtUtc
+    +Guid PublisherId
+  }
+
+  class BookAuthor <<join entity>> {
+    +Guid BookId
+    +Guid AuthorId
+    +int SortOrder
+  }
+
+  class BookCategory <<join entity>> {
+    +Guid BookId
+    +Guid CategoryId
+  }
+
+  class LibraryBranch {
+    +Guid Id
+    +string Name
+    +string Phone
+    +Address Address
+  }
+
+  class BookCopy {
+    +Guid Id
+    +string Barcode
+    +BookCopyStatus Status
+    +DateOnly AcquiredOn
+    +decimal PurchasePrice
+    +string ShelfLocation
+    +Guid BookId
+    +Guid BranchId
+    +byte[] RowVersion
+  }
+
+  class Rental {
+    +Guid Id
+    +string RentalNumber
+    +DateTime RentedAtUtc
+    +DateTime DueAtUtc
+    +DateTime? ClosedAtUtc
+    +RentalStatus Status
+    +Guid CustomerId
+    +Guid StaffId
+    +Guid BranchId
+  }
+
+  class RentalLine {
+    +Guid Id
+    +Guid RentalId
+    +Guid BookCopyId
+    +DateTime? ReturnedAtUtc
+    +decimal DailyLateFee
+    +decimal LateFeeCharged
+    +bool IsReturned
+    +byte[] RowVersion
+  }
+
+  class Reservation {
+    +Guid Id
+    +Guid CustomerId
+    +Guid BookCopyId
+    +DateTime ReservedAtUtc
+    +DateTime ExpiresAtUtc
+    +ReservationStatus Status
+  }
+
+  class Review {
+    +Guid Id
+    +Guid BookId
+    +Guid CustomerId
+    +int Rating
+    +string? Comment
+    +DateTime CreatedAtUtc
+  }
+
+  enum BookCopyStatus {
+    Available
+    Rented
+    Reserved
+    Lost
+    Maintenance
+  }
+
+  enum CustomerStatus {
+    Active
+    Suspended
+    Closed
+  }
+
+  enum RentalStatus {
+    Open
+    Closed
+    Overdue
+    Cancelled
+  }
+
+  enum ReservationStatus {
+    Active
+    Fulfilled
+    Cancelled
+    Expired
+  }
+}
+
+LibraryUser <|-- Customer
+LibraryUser <|-- Staff
+
+Customer *-- Address : owns
+LibraryBranch *-- Address : owns
+
+Publisher "1" <-- "0..*" Book : publishes
+Book "1" o-- "0..*" BookAuthor
+Author "1" o-- "0..*" BookAuthor
+Book "1" o-- "0..*" BookCategory
+Category "1" o-- "0..*" BookCategory
+
+Book "1" <-- "0..*" BookCopy
+LibraryBranch "1" <-- "0..*" BookCopy
+
+Customer "1" <-- "0..*" Rental
+Staff "1" <-- "0..*" Rental
+LibraryBranch "1" <-- "0..*" Rental
+Rental "1" *-- "1..*" RentalLine
+BookCopy "1" <-- "0..*" RentalLine
+
+Customer "1" <-- "0..*" Reservation
+BookCopy "1" <-- "0..*" Reservation
+
+Book "1" <-- "0..*" Review
+Customer "1" <-- "0..*" Review
+
+BookCopy --> BookCopyStatus
+Customer --> CustomerStatus
+Rental --> RentalStatus
+Reservation --> ReservationStatus
+
+note right of LibraryUser
+  EF Core table-per-hierarchy:
+  table LibraryUsers
+  discriminator UserType
+end note
+
+note right of Book
+  Global query filter:
+  IsDeleted = false
+end note
+
+note right of BookCopy
+  RowVersion is an EF Core
+  concurrency token.
+end note
+
+@enduml

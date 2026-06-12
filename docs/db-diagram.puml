@@ -1,0 +1,193 @@
+@startuml
+title SampleAPI Library Database Diagram
+
+skinparam linetype ortho
+hide circle
+
+entity "LibraryUsers" as LibraryUsers {
+  * Id : uniqueidentifier <<PK>>
+  --
+  FirstName : nvarchar(80)
+  LastName : nvarchar(80)
+  Email : nvarchar(250) <<UQ>>
+  Phone : nvarchar(30)
+  CreatedAtUtc : datetime2
+  UserType : nvarchar(max) <<discriminator>>
+  MembershipNumber : nvarchar(30) <<UQ, Customer>>
+  Status : nvarchar(20) <<Customer>>
+  JoinedOn : date <<Customer>>
+  EmployeeNumber : nvarchar(30) <<UQ, Staff>>
+  HiredOn : date <<Staff>>
+  Street : nvarchar(180) <<owned Address>>
+  City : nvarchar(80) <<owned Address>>
+  State : nvarchar(80) <<owned Address>>
+  PostalCode : nvarchar(20) <<owned Address>>
+  Country : nvarchar(80) <<owned Address>>
+}
+
+entity "Publishers" as Publishers {
+  * Id : uniqueidentifier <<PK>>
+  --
+  Name : nvarchar(160) <<UQ>>
+  Website : nvarchar(300)
+}
+
+entity "Authors" as Authors {
+  * Id : uniqueidentifier <<PK>>
+  --
+  FirstName : nvarchar(80)
+  LastName : nvarchar(80)
+  BirthDate : date
+  Biography : nvarchar(2000)
+}
+
+entity "Categories" as Categories {
+  * Id : uniqueidentifier <<PK>>
+  --
+  Name : nvarchar(80) <<UQ>>
+  Description : nvarchar(500)
+}
+
+entity "Books" as Books {
+  * Id : uniqueidentifier <<PK>>
+  --
+  Isbn : nvarchar(20) <<UQ>>
+  Title : nvarchar(250)
+  Description : nvarchar(2000)
+  PublicationYear : int
+  Edition : int
+  Pages : int
+  ReplacementCost : decimal(10,2)
+  IsDeleted : bit
+  CreatedAtUtc : datetime2
+  UpdatedAtUtc : datetime2
+  PublisherId : uniqueidentifier <<FK>>
+}
+
+entity "BookAuthors" as BookAuthors {
+  * BookId : uniqueidentifier <<PK, FK>>
+  * AuthorId : uniqueidentifier <<PK, FK>>
+  --
+  SortOrder : int
+}
+
+entity "BookCategories" as BookCategories {
+  * BookId : uniqueidentifier <<PK, FK>>
+  * CategoryId : uniqueidentifier <<PK, FK>>
+}
+
+entity "Branches" as Branches {
+  * Id : uniqueidentifier <<PK>>
+  --
+  Name : nvarchar(120) <<UQ>>
+  Phone : nvarchar(30)
+  Street : nvarchar(180) <<owned Address>>
+  City : nvarchar(80) <<owned Address>>
+  State : nvarchar(80) <<owned Address>>
+  PostalCode : nvarchar(20) <<owned Address>>
+  Country : nvarchar(80) <<owned Address>>
+}
+
+entity "BookCopies" as BookCopies {
+  * Id : uniqueidentifier <<PK>>
+  --
+  Barcode : nvarchar(40) <<UQ>>
+  Status : nvarchar(20)
+  AcquiredOn : date
+  PurchasePrice : decimal(10,2)
+  ShelfLocation : nvarchar(30)
+  InventoryLabel : computed
+  RowVersion : rowversion
+  BookId : uniqueidentifier <<FK>>
+  BranchId : uniqueidentifier <<FK>>
+}
+
+entity "Rentals" as Rentals {
+  * Id : uniqueidentifier <<PK>>
+  --
+  RentalNumber : nvarchar(40) <<UQ>>
+  RentedAtUtc : datetime2
+  DueAtUtc : datetime2
+  ClosedAtUtc : datetime2
+  Status : nvarchar(20)
+  CustomerId : uniqueidentifier <<FK to LibraryUsers>>
+  StaffId : uniqueidentifier <<FK to LibraryUsers>>
+  BranchId : uniqueidentifier <<FK>>
+}
+
+entity "RentalLines" as RentalLines {
+  * Id : uniqueidentifier <<PK>>
+  --
+  RentalId : uniqueidentifier <<FK>>
+  BookCopyId : uniqueidentifier <<FK>>
+  ReturnedAtUtc : datetime2
+  DailyLateFee : decimal(10,2)
+  LateFeeCharged : decimal(10,2)
+  IsReturned : bit
+  RowVersion : rowversion
+}
+
+entity "Reservations" as Reservations {
+  * Id : uniqueidentifier <<PK>>
+  --
+  CustomerId : uniqueidentifier <<FK to LibraryUsers>>
+  BookCopyId : uniqueidentifier <<FK>>
+  ReservedAtUtc : datetime2
+  ExpiresAtUtc : datetime2
+  Status : nvarchar(20)
+}
+
+entity "Reviews" as Reviews {
+  * Id : uniqueidentifier <<PK>>
+  --
+  BookId : uniqueidentifier <<FK>>
+  CustomerId : uniqueidentifier <<FK to LibraryUsers>>
+  Rating : int <<CK 1..5>>
+  Comment : nvarchar(1000)
+  CreatedAtUtc : datetime2
+}
+
+Publishers ||--o{ Books : PublisherId
+Books ||--o{ BookAuthors : BookId
+Authors ||--o{ BookAuthors : AuthorId
+Books ||--o{ BookCategories : BookId
+Categories ||--o{ BookCategories : CategoryId
+
+Books ||--o{ BookCopies : BookId
+Branches ||--o{ BookCopies : BranchId
+
+LibraryUsers ||--o{ Rentals : CustomerId
+LibraryUsers ||--o{ Rentals : StaffId
+Branches ||--o{ Rentals : BranchId
+Rentals ||--o{ RentalLines : RentalId
+BookCopies ||--o{ RentalLines : BookCopyId
+
+LibraryUsers ||--o{ Reservations : CustomerId
+BookCopies ||--o{ Reservations : BookCopyId
+
+Books ||--o{ Reviews : BookId
+LibraryUsers ||--o{ Reviews : CustomerId
+
+note right of LibraryUsers
+  TPH table for Customer and Staff.
+  Customer rows use MembershipNumber,
+  Status, JoinedOn and Address columns.
+  Staff rows use EmployeeNumber and HiredOn.
+end note
+
+note right of Books
+  Soft delete with EF global filter:
+  IsDeleted = 0.
+end note
+
+note right of BookCopies
+  InventoryLabel computed column:
+  [Barcode] + ' @ ' + [ShelfLocation]
+end note
+
+note bottom of Reviews
+  Unique index: BookId + CustomerId.
+  Check constraint: Rating between 1 and 5.
+end note
+
+@enduml
