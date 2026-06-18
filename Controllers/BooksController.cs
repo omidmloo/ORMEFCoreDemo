@@ -86,7 +86,7 @@ public class BooksController(LiberaryDbContext db) : ControllerBase
                 x.Reviews.Any() ? x.Reviews.Average(r => r.Rating) : 0))
             .FirstOrDefaultAsync(cancellationToken);
         return book is null ? NotFound() : Ok(book);
-         
+
     }
 
     [HttpPost]

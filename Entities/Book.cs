@@ -3,6 +3,7 @@ namespace SampleAPI.Entities;
 public class Book
 {
     public Guid Id { get; set; }
+    public int TotalSales { get; set; }
     public string Isbn { get; set; } = null!;
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
