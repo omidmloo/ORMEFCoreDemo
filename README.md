@@ -1,6 +1,6 @@
 # EF Core Library API Showcase
 
-ASP.NET Core API that models a Persian library system and demonstrates EF Core against SQL Server.
+ASP.NET Core Web API that models a Persian library system and demonstrates EF Core with SQL Server.
 
 ## Diagrams
 
@@ -16,30 +16,43 @@ ASP.NET Core API that models a Persian library system and demonstrates EF Core a
 
 [PlantUML source](docs/db-diagram.puml)
 
+## Stack
+
+- .NET 10
+- ASP.NET Core controllers
+- EF Core 10 with SQL Server
+- EF Core migrations and seed data
+- Swagger UI / OpenAPI
+- Mapster DTO mapping
+
 ## Run
+
+Update the `LibraryDb` connection string in `appsettings.json` for your SQL Server instance. The checked-in default points to SQL Server on `127.0.0.1,14331`:
+
+```json
+"LibraryDb": "Server=127.0.0.1,14331;Initial Catalog=LibraryDB;User ID=sa;Password=PassTest1!@#;Pooling=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True"
+```
+
+Then restore and run the API:
 
 ```powershell
 dotnet restore
 dotnet run
 ```
 
-The app uses SQL Server LocalDB by default:
-
-```json
-"LibraryDb": "Server=(localdb)\\MSSQLLocalDB;Database=EfCoreLibraryShowcaseV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
-```
-
 On startup, `Database.Migrate()` applies the included migration and seed data.
 
-Swagger UI is served from the application root:
+With the included launch profile, the API runs at:
 
 ```text
-http://localhost:<port>/
+http://localhost:5227
+https://localhost:7277
 ```
 
+Swagger UI is served from the application root.
 OpenAPI JSON is available at `/openapi/v1.json`.
 
-The seed data includes Persian library content: 3 Iranian branches, 8 Persian books, 8 customers, 8 authors, 4 publishers, 6 categories, 16 book copies, rentals, reservations, and reviews.
+The seed data includes Persian library content: 3 Iranian branches, 8 Persian books, 8 customers, 3 staff members, 8 authors, 4 publishers, 6 categories, 16 book copies, rentals, reservations, and reviews.
 
 ## Main Endpoints
 
@@ -52,17 +65,23 @@ The seed data includes Persian library content: 3 Iranian branches, 8 Persian bo
 - `PATCH /api/books/copies/{copyId}/status`
 - `POST /api/books/{bookId}/reviews`
 - `GET /api/customers`
+- `GET /api/customers/{id}`
 - `POST /api/customers`
+- `PUT /api/customers/{id}`
 - `GET /api/customers/{id}/rentals`
 - `GET /api/rentals`
+- `GET /api/rentals/{id}`
 - `POST /api/rentals`
 - `POST /api/rentals/{id}/return`
 - `GET /api/reservations`
 - `POST /api/reservations`
 - `POST /api/reservations/{id}/cancel`
 - `GET /api/lookups/authors`
+- `POST /api/lookups/authors`
 - `GET /api/lookups/categories`
+- `POST /api/lookups/categories`
 - `GET /api/lookups/publishers`
+- `POST /api/lookups/publishers`
 - `GET /api/lookups/branches`
 - `GET /api/lookups/staff`
 
