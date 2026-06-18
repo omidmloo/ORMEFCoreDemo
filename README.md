@@ -2,6 +2,20 @@
 
 ASP.NET Core API that models a Persian library system and demonstrates EF Core against SQL Server.
 
+## Diagrams
+
+### Domain Class Diagram
+
+![Domain class diagram](docs/class-diagram.svg)
+
+[PlantUML source](docs/class-diagram.puml)
+
+### Database Diagram
+
+![Database diagram](docs/db-diagram.svg)
+
+[PlantUML source](docs/db-diagram.puml)
+
 ## Run
 
 ```powershell
