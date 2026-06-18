@@ -33,6 +33,8 @@ Update the `LibraryDb` connection string in `appsettings.json` for your SQL Serv
 "LibraryDb": "Server=127.0.0.1,14331;Initial Catalog=LibraryDB;User ID=sa;Password=PassTest1!@#;Pooling=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True"
 ```
 
+Security notice: this connection string is included only for learning and local demo purposes. Do not commit real database credentials or production connection strings to source control. For real applications, use user secrets, environment variables, or a managed secret store.
+
 Then restore and run the API:
 
 ```powershell
